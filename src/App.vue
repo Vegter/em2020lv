@@ -38,23 +38,22 @@
     </v-app-bar>
 
     <v-content>
-      <HelloWorld/>
+      <elections></elections>
     </v-content>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
+import Elections from './components/Elections';
 
 export default {
   name: 'App',
 
   components: {
-    HelloWorld,
+    Elections
   },
 
   data: () => ({
-    //
   }),
 };
 </script>
