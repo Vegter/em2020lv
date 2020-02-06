@@ -4,7 +4,6 @@
       text-center
       wrap
     >
-
       <v-flex xs12>
         <h2>Les Suffrages</h2>
         <v-card
@@ -15,20 +14,18 @@
             <v-col v-for="list in listes" :key="list.name" sm="4" cols="12">
               <div class="text-left">
                 Liste {{list.name}}
-                <span v-if="list.percentage < 0.05">
-                </span>
+                <span v-if="list.percentage < 0.05"></span>
                 <span v-else-if="results.winner" class="text-no-wrap">
                   ({{list.prime + list.seats + list.restSeats}} sièges)
                 </span>
               </div>
               <v-text-field
                       v-model="list.votes"
-                      :rules="[]"
-                      required
+                      :rules="positive"
               ></v-text-field>
               <div>
-                <v-btn @click="list.votes = parseInt(list.votes) + 1">+</v-btn>
-                <v-btn @click="list.votes = parseInt(list.votes) - 1">-</v-btn>
+                <v-btn tabindex="-1" @click="addVote(list, 1)">+</v-btn>
+                <v-btn tabindex="-1" @click="addVote(list, -1)">-</v-btn>
               </div>
             </v-col>
           </v-row>
@@ -83,7 +80,6 @@
             </div>
           </v-card-text>
         </v-card>
-
 
         <v-card
                 class="mx-auto mb-2"
@@ -166,21 +162,17 @@
           </v-card-text>
         </v-card>
 
-        <v-flex xs12 v-if="results.winner">
-          <v-card
-                  class="mx-auto"
-                  tile
-          >
-            <v-card-text>
-              <h3 class="headline font-weight-bold mb-3">Resultats</h3>
-              <div v-for="list in results.lists" :key="list.name">
-                {{list.name}} {{list.prime + list.seats + list.restSeats}} sièges
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-flex>
-
-
+        <v-card
+                class="mx-auto"
+                tile
+        >
+          <v-card-text>
+            <h3 class="headline font-weight-bold mb-3">Resultats</h3>
+            <div v-for="list in results.lists" :key="list.name">
+              {{list.name}} {{list.prime + list.seats + list.restSeats}} sièges
+            </div>
+          </v-card-text>
+        </v-card>
 
       </v-flex>
 
@@ -189,58 +181,30 @@
 </template>
 
 <script>
-  const listes = [
-    {
-      name: "Marignane",
-      votes: 301,
-      isWinner: null,
-      seats: 0,
-      remaingSeats: 0,
-      avg: 0
-    },
-    {
-      name: "Charrat",
-      votes: 300,
-      isWinner: null,
-      seats: 0,
-      remaingSeats: 0,
-      avg: 0
-    },
-    {
-      name: "Rogier",
-      votes: 299,
-      isWinner: null,
-      seats: 0,
-      remaingSeats: 0,
-      avg: 0
-    }
-  ];
-
   const seats = 19;
-  const remaingSeats = 9;
 
-  const votingResult = {
-    q: null,
-    totalVotes: null
-  };
+  const listNames = ["Marignane", "Charrat", "Rogier"]
+
+  const listes = listNames.map(name => ({name, votes: null}))
 
   function log(msg) {
     window.console.log(msg)
   }
 
-  const results = {
-    totalSeats: null,
-    totalVotes: null,
-    absoluteMajority: null,
-    winner: null,
-    remainingSeats: null,
-    q: null,
-    lists: null,
-    nRounds: null,
-    restRounds: []
-  };
-
   function setResult() {
+    const results = {
+      totalSeats: null,
+      totalVotes: null,
+      absoluteMajority: null,
+      winner: null,
+      remainingSeats: null,
+      q: null,
+      lists: null,
+      nRounds: null,
+      restRounds: []
+    };
+
+    results.winner = null
     results.error = null
 
     listes.forEach(list => list.votes = parseInt(list.votes));
@@ -261,8 +225,9 @@
     const winners = lists.filter(list => list.votes === maxVotes)
     if (winners.length > 1) {
       log("NO WINNER")
+      results.winner = null
       results.error = "Aucun gagnant clair"
-      return
+      return results
     }
 
     const winner = winners[0];
@@ -307,9 +272,10 @@
         const maxVotes = Math.max(...winners.map(winner => winner.votes))
         winners = winners.filter(winner => winner.votes === maxVotes)
         if (winners.length > 1 && i === restSeats - 1) {
-          // unknown last restSeats
           log("UNKNOWN LAST RESTSEAT")
-          return
+          results.winner = null
+          results.error = "siège résiduel inconnu"
+          return results
         }
       }
       restRounds[i] = {
@@ -335,185 +301,54 @@
     results.lists = lists
     results.restRounds = restRounds
     results.nRounds = nRounds
-  }
 
-  function remains() {
-    let remains = seats;
-    for (let list of listes) {
-      remains -= list.seats;
-      remains -= list.remainingSeats;
-    }
-    return remains
-  }
-
-  function getTotalVotes() {
-    let totalVotes = 0;
-    for (let list of listes) {
-      totalVotes += parseInt(list.votes);
-    }
-    return totalVotes;
-  }
-
-  function getAbsoluteMajority() {
-    const totalVotes = getTotalVotes();
-    return Math.trunc((totalVotes / 2) + 1);
-  }
-
-  function getMajorityPrime() {
-    return Math.round(seats / 2)
-  }
-
-  function getRemainingSeats() {
-    return seats - getMajorityPrime()
-  }
-
-  function getWinner() {
-    let max = -1;
-    let maxList = null;
-    for (let list of listes) {
-      if (list.votes > max) {
-        max = list.votes;
-        maxList = list;
-      }
-    }
-    return maxList;
-  }
-
-  function getQ() {
-    return getTotalVotes() / getRemainingSeats()
-  }
-
-  function getAverage(list) {
-    const avg = list.votes / getQ();
-    return [avg, Math.trunc(avg)];
-  }
-
-  function getRestSeats() {
-    let restSeats = seats - getMajorityPrime();
-    for (let list of listes) {
-      restSeats -= getAverage(list)[1]
-    }
-    return restSeats
-  }
-
-  function getRestSeatsDivision() {
-    const restLists = listes.slice()
-
-    for (let list of restLists) {
-      list.seats = 0
-      if (list.name == getWinner().name) {
-        list.seats += getMajorityPrime()
-      }
-      list.seats += getAverage(list)[1]
-    }
-
-    let restSeats = getRestSeats()
-    while (restSeats > 0) {
-      let maxQ = 0
-      let maxList = null
-      for (let list of restLists) {
-        list.wins = false
-        list.q = list.votes / (list.seats + 1)
-        if (list.q > maxQ) {
-          maxQ = list.q
-          maxList = list
-        }
-      }
-      maxList.wins = true
-    }
-    return restLists
+    return results
   }
 
   export default {
   name: 'Elections',
 
   data: () => ({
+    positive: [
+      v => !isNaN(parseInt(v)) || 'valeur invalide',
+      v => parseInt(v) >= 0 || 'value negative'
+    ],
     listes,
     seats,
-    votingResult,
-    remains,
-    results,
-    anything: null
+    results: {}
   }),
   watch: {
     listes: {
       handler() {
-        this.calcul();
+        this.recalc();
       },
       deep: true
     }
   },
   methods: {
-    getTotalVotes,
-    getAbsoluteMajority,
-    getMajorityPrime,
-    getRemainingSeats,
-    getWinner,
-    getQ,
-    getAverage,
-    getRestSeats,
-    getRestSeatsDivision,
-
-    ttt() {
-      this.anything = null
+    addVote(list, v) {
+      this.parseVotes(list)
+      list.votes += v
+      this.$forceUpdate()
     },
 
-    calcul: () => {
-      setResult();
-    },
-
-    setQ: () => {
-      let totalVotes = 0;
-      for (let list of listes) {
-        totalVotes += list.votes;
-      }
-      const q = totalVotes / remaingSeats;
-
-      votingResult.totalVotes = totalVotes;
-      votingResult.q = q;
-
-      for (let list of listes) {
-        list.remainingSeats = Math.trunc(list.votes / q);
-      }
-
-      while (remains() > 0) {
-        let maxAvg = 0;
-        let maxList = null;
-        for (let list of listes) {
-          list.avg = list.votes / (list.remainingSeats + 1);
-          if (list.avg > maxAvg) {
-            maxAvg = list.avg;
-            maxList = list;
-          }
-        }
-        maxList.remainingSeats += 1;
-      }
-
-
-
-      // for (list of listes)
-    },
-    majorityPrime: () => {
-      let max = -1;
-      let maxList = null;
-      for (let list of listes) {
-        if (list.votes > max) {
-          max = list.votes;
-          maxList = list;
-        }
-      }
-      for (let list of listes) {
-        if (list === maxList) {
-          list.isWinner = true;
-          list.seats = 10;
-        } else {
-          list.isWinner = false;
-        }
+    parseVotes(list) {
+      list.votes = parseInt(list.votes)
+      if (!list.votes || isNaN(list.votes)) {
+        list.votes = 0
       }
     },
-    remainingSeats: () => {
-      this.setQ();
-    }
+
+    recalc() {
+      if (this.results.winner) {
+        this.calcul()
+      }
+    },
+
+    calcul() {
+      listes.forEach(list => this.parseVotes(list))
+      this.results = setResult();
+    },
   }
 };
 </script>
