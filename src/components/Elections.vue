@@ -4,76 +4,89 @@
       text-center
       wrap
     >
-      <v-flex xs12>
-      </v-flex>
-
-      <v-flex mb-4>
-        <h1 class="display-2 font-weight-bold mb-3">
-          Elections Municipale 2020
-        </h1>
-        <h2>La Verdière</h2>
-      </v-flex>
 
       <v-flex xs12>
-        <h2>Les Résultats</h2>
+        <h2>Les Suffrages</h2>
         <v-card
                 class="mx-auto"
                 tile
         >
-          <v-list-item v-for="list in listes" :key="list.name">
-            <v-list-item-content>
-              <v-list-item-title>{{list.name}}</v-list-item-title>
-              <v-row justify="center">
-                <v-col cols="4">
-                <v-text-field
-                        v-model="list.votes"
-                        :rules="[]"
-                        label="voix"
-                        required
-                ></v-text-field>
-                </v-col>
-              </v-row>
-            </v-list-item-content>
-          </v-list-item>
-          <v-btn @click="calcul()" class="mb-2">Calcul</v-btn>
+          <v-row class="mr-2 ml-2">
+            <v-col v-for="list in listes" :key="list.name" sm="4" cols="12">
+              <div class="text-left">
+                Liste {{list.name}}
+                <span v-if="list.percentage < 0.05">
+                </span>
+                <span v-else-if="results.winner" class="text-no-wrap">
+                  ({{list.prime + list.seats + list.restSeats}} sièges)
+                </span>
+              </div>
+              <v-text-field
+                      v-model="list.votes"
+                      :rules="[]"
+                      required
+              ></v-text-field>
+              <div>
+                <v-btn @click="list.votes = parseInt(list.votes) + 1">+</v-btn>
+                <v-btn @click="list.votes = parseInt(list.votes) - 1">-</v-btn>
+              </div>
+            </v-col>
+          </v-row>
         </v-card>
       </v-flex>
 
-      <v-flex xs12 v-if="results.winner">
+      <v-flex class="mt-5 mb-5">
+        <v-btn @click="calcul()">Calcul</v-btn>
+      </v-flex>
+
+      <v-flex xs12 v-if="results.error">
         <v-card
-                class="mx-auto"
+                class="mx-auto mb-2"
                 tile
         >
           <v-card-text>
-            <h3 class="headline font-weight-bold mb-3">Victoire</h3>
+            <h3 class="headline font-weight-bold mb-3">{{results.error}}</h3>
+          </v-card-text>
+        </v-card>
+      </v-flex>
+
+      <v-flex xs12 v-else-if="results.winner">
+        <v-card
+                class="mx-auto mb-2"
+                tile
+        >
+          <v-card-text>
+            <h3 class="headline font-weight-bold mb-3">Sièges et Suffrages</h3>
             <div>
-              {{results.winner.name}}
+              {{results.totalSeats}} sièges à attribuer
             </div>
-            <div v-for="list in results.lists" :key="list.name">
-              {{list.name}} {{list.prime + list.seats + list.restSeats}} sièges
+            <div>
+              {{results.totalVotes}} suffrages exprimés, donc une majorité absolue de ({{results.totalVotes}}/2) + 1 = {{results.absoluteMajority}} voix
             </div>
           </v-card-text>
         </v-card>
-      </v-flex>
 
-      <v-flex xs12 v-if="results.winner">
         <v-card
-                class="mx-auto"
+                class="mx-auto mb-2"
                 tile
         >
           <v-card-text>
-          <h3 class="headline font-weight-bold mb-3">Sièges et Suffrages</h3>
-          <div>
-            {{results.totalSeats}} sièges à attribuer
-          </div>
-          <div>
-            {{results.totalVotes}} suffrages exprimés, donc une majorité absolue de ({{results.totalVotes}}/2) + 1 = {{results.absoluteMajority}} voix
-          </div>
+            <h3 class="headline font-weight-bold mb-3">Seuil électoral</h3>
+            <p>
+              Les sièges sont répartis à la représentation proportionnelle à la plus forte moyenne
+              entre toutes les listes ayant obtenu plus de 5% ({{Math.ceil(results.totalVotes * 0.05)}}) des suffrages exprimés,
+              en fonction du nombre de suffrage obtenus.
+            </p>
+            <div v-for="list in listes" :key="list.name">
+              <h4>Liste {{list.name}}</h4>
+              {{list.votes}} ({{(list.percentage * 100).toFixed(2)}}%)
+            </div>
           </v-card-text>
         </v-card>
 
+
         <v-card
-                class="mx-auto"
+                class="mx-auto mb-2"
                 tile
         >
           <v-card-text>
@@ -86,7 +99,7 @@
         </v-card>
 
         <v-card
-                class="mx-auto"
+                class="mx-auto mb-2"
                 tile
         >
           <v-card-text>
@@ -98,7 +111,7 @@
         </v-card>
 
         <v-card
-                class="mx-auto"
+                class="mx-auto mb-2"
                 tile
         >
           <v-card-text>
@@ -110,7 +123,7 @@
               <v-list-item-content>
                 <v-row justify="center">
                   <v-col>
-                    <h4>{{list.name}}</h4>
+                    <h4>Liste {{list.name}}</h4>
                     <div>
                       Q: {{list.votes}}/{{results.q.toFixed(2)}} = {{list.avg.toFixed(2)}} soit {{list.seats}} sièges
                     </div>
@@ -125,7 +138,7 @@
         </v-card>
 
         <v-card
-                class="mx-auto"
+                class="mx-auto mb-2"
                 tile
                 v-for="(round, index) in results.restRounds"
                 :key="index"
@@ -139,7 +152,7 @@
               <v-list-item-content>
                 <v-row justify="center">
                   <v-col>
-                    <h4>{{list.name}}</h4>
+                    <h4>Liste {{list.name}}</h4>
                     <div>
                       Q: {{list.votes}}/{{list.rounds[index].roundSeats}} + 1 = {{list.rounds[index].avg.toFixed(2)}}
                     </div>
@@ -152,6 +165,22 @@
             </div>
           </v-card-text>
         </v-card>
+
+        <v-flex xs12 v-if="results.winner">
+          <v-card
+                  class="mx-auto"
+                  tile
+          >
+            <v-card-text>
+              <h3 class="headline font-weight-bold mb-3">Resultats</h3>
+              <div v-for="list in results.lists" :key="list.name">
+                {{list.name}} {{list.prime + list.seats + list.restSeats}} sièges
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-flex>
+
+
 
       </v-flex>
 
@@ -212,17 +241,19 @@
   };
 
   function setResult() {
-    let allLists = listes.slice();
+    results.error = null
 
-    allLists.forEach(list => list.votes = parseInt(list.votes));
+    listes.forEach(list => list.votes = parseInt(list.votes));
 
     let totalVotes = 0;
-    allLists.forEach(list => totalVotes += list.votes);
+    listes.forEach(list => totalVotes += list.votes);
 
     // Phase 1, >= 5%
-    allLists.forEach(list => {
+    listes.forEach(list => {
       list.percentage = list.votes / totalVotes
     });
+
+    let allLists = listes.slice();
     let lists = allLists.filter(list => list.percentage >= 0.05);
 
     const maxVotes = Math.max(...lists.map(list => list.votes));
@@ -230,6 +261,7 @@
     const winners = lists.filter(list => list.votes === maxVotes)
     if (winners.length > 1) {
       log("NO WINNER")
+      results.error = "Aucun gagnant clair"
       return
     }
 
@@ -400,8 +432,17 @@
     seats,
     votingResult,
     remains,
-    results
+    results,
+    anything: null
   }),
+  watch: {
+    listes: {
+      handler() {
+        this.calcul();
+      },
+      deep: true
+    }
+  },
   methods: {
     getTotalVotes,
     getAbsoluteMajority,
@@ -412,6 +453,10 @@
     getAverage,
     getRestSeats,
     getRestSeatsDivision,
+
+    ttt() {
+      this.anything = null
+    },
 
     calcul: () => {
       setResult();
