@@ -12,7 +12,8 @@
         >
           <v-row class="mr-2 ml-2">
             <v-col v-for="list in listes" :key="list.name" sm="4" cols="12">
-              <div class="text-left">
+              <div class="text-cente">
+                <v-img class="center" :src="require(`../assets/${list.name}.jpg`)" width="45" height="45"></v-img>
                 Liste {{list.name}}
                 <span v-if="list.percentage < 0.05"></span>
                 <span v-else-if="results.winner" class="text-no-wrap">
@@ -352,3 +353,13 @@
   }
 };
 </script>
+
+<style>
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+  border-radius: 50%;
+}
+</style>
