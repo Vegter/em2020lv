@@ -11,7 +11,7 @@
                 tile
         >
           <v-row class="mr-2 ml-2">
-            <v-col v-for="list in listes" :key="list.name" sm="4" cols="12">
+            <v-col v-for="list in listes" :key="list.name" md="4" cols="12">
               <div class="text-cente">
                 <v-img class="center" :src="require(`../assets/${list.name}.jpg`)" width="45" height="45"></v-img>
                 Liste {{list.name}}
@@ -21,12 +21,13 @@
                 </span>
               </div>
               <v-text-field
+                      class="mr-5 ml-5"
                       v-model="list.votes"
                       :rules="positive"
               ></v-text-field>
               <div>
-                <v-btn tabindex="-1" @click="addVote(list, 1)">+</v-btn>
-                <v-btn tabindex="-1" @click="addVote(list, -1)">-</v-btn>
+                <v-btn class="float-left ml-5" tabindex="-1" @click="addVote(list, -1)">-</v-btn>
+                <v-btn class="float-right mr-5" tabindex="-1" @click="addVote(list, 1)">+</v-btn>
               </div>
             </v-col>
           </v-row>
