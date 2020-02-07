@@ -208,6 +208,7 @@
 
     results.winner = null
     results.error = null
+    results.calculated = true
 
     listes.forEach(list => list.votes = parseInt(list.votes));
 
@@ -228,7 +229,7 @@
     if (winners.length > 1) {
       log("NO WINNER")
       results.winner = null
-      results.error = "Aucun gagnant clair"
+      results.error = "Le résultat est indéterminé"
       return results
     }
 
@@ -273,10 +274,10 @@
       if (winners.length > 1) {
         const maxVotes = Math.max(...winners.map(winner => winner.votes))
         winners = winners.filter(winner => winner.votes === maxVotes)
-        if (winners.length > 1 && i === restSeats - 1) {
+        if (winners.length > 1) {
           log("UNKNOWN LAST RESTSEAT")
           results.winner = null
-          results.error = "siège résiduel inconnu"
+          results.error = "Attribution des sièges restants est indéterminé"
           return results
         }
       }
@@ -342,7 +343,7 @@
     },
 
     recalc() {
-      if (this.results.winner) {
+      if (this.results.calculated) {
         this.calcul()
       }
     },
