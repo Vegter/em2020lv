@@ -5,6 +5,13 @@
       wrap
     >
       <v-flex xs12>
+        <div class="align-center">
+          Il s'agit d'un projet open source privé non affilié à la municipalité ou autrement.
+          Les résultats affichés sont approximatifs et n'ont aucun statut officiel.
+        </div>
+      </v-flex>
+
+      <v-flex xs12>
         <h2>Les Suffrages</h2>
         <v-card
                 class="mx-auto"
