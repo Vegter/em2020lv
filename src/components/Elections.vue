@@ -35,7 +35,7 @@
       </v-flex>
 
       <v-flex class="mt-5 mb-5">
-        <v-btn @click="calcul()">Calcul</v-btn>
+        <v-btn @click="calcul()">Estimation</v-btn>
       </v-flex>
 
       <v-flex xs12 v-if="results.error">
